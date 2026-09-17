@@ -12,6 +12,22 @@
 
 대상 목록의 출처는 온누리상품권 공식 사이트의 [온라인 사용처](https://www.onnuri.gift/visit/market)입니다.
 
+## 다른 PC에서 이어서 하기
+
+수집 데이터는 저장소에 올리지 않으므로, 받아온 직후에는 화면에 띄울 데이터가 없습니다.
+전체 수집(약 25분)을 다시 돌리는 대신 마지막 배포본을 내려받으면 바로 시작할 수 있습니다.
+
+```bash
+git clone https://github.com/jyyang12/onnuri-price
+cd onnuri-price
+pip install -r requirements.txt
+
+python -m collector._fetch_data     # 마지막 수집분 내려받기 (약 50MB)
+python -m http.server 8765          # http://127.0.0.1:8765
+```
+
+`preview.html` 을 열면 휴대폰 화면 크기로 미리 볼 수 있고, 화면 파일을 고치면 알아서 다시 불러옵니다.
+
 ## 실행
 
 ```bash
