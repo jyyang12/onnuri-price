@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: "0 19 * * *" # 매일 04:00 KST
   workflow_dispatch:
+    inputs:
+      sites:
+        description: "특정 사이트만 수집 (공백 구분). 넣으면 시험 실행이라 발행하지 않는다"
+        default: ""
 
 permissions:
   contents: write
@@ -24,8 +28,12 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - name: 수집
-        run: python -m collector.run
+        run: |
+          args=""
+          for s in ${{ github.event.inputs.sites }}; do args="$args --site $s"; done
+          python -m collector.run $args
       - name: 결과 확인
+        if: ${{ !github.event.inputs.sites }}
         run: |
           python - <<'EOF'
           import json, pathlib, sys
@@ -40,6 +48,7 @@ jobs:
               sys.exit("수집 결과가 비정상이라 배포를 건너뜁니다")
           EOF
       - name: deploy 브랜치로 발행
+        if: ${{ !github.event.inputs.sites }}
         run: |
           rm -rf .publish && mkdir -p .publish/data
           cp index.html .publish/
