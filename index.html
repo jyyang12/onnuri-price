@@ -279,11 +279,12 @@
       <button type="button" class="tool reset" id="reset" hidden>↺ 초기화</button>
       <label class="tool" id="sortTool">
         <select id="sort">
-          <option value="review_desc">리뷰 많은순</option>
+          <option value="pop_desc">인기순</option>
           <option value="price_asc">낮은 가격순</option>
           <option value="price_desc">높은 가격순</option>
           <option value="dc_desc">할인율 높은순</option>
           <option value="offers_desc">판매 몰 많은순</option>
+          <option value="review_desc">리뷰 많은순</option>
         </select>
       </label>
     </div>
@@ -440,13 +441,15 @@
     price_desc: (a, b) => b._p - a._p,
     dc_desc: (a, b) => (b._o.d || 0) - (a._o.d || 0) || a._p - b._p,
     offers_desc: (a, b) => b._c - a._c || a._p - b._p,
-    // 리뷰는 몰마다 따로 쌓이니 묶음 안에서 가장 많은 쪽을 기준으로 삼는다
-    review_desc: (a, b) => maxReviews(b) - maxReviews(a) || a._p - b._p,
+    // 판매량·리뷰를 각 몰 안의 상위 비율로 환산해 둔 값(pp)으로 섞어 정렬한다
+    pop_desc: (a, b) => best(b, 'pp') - best(a, 'pp') || a._p - b._p,
+    // 리뷰도 몰마다 따로 쌓이니 묶음 안에서 가장 많은 쪽을 기준으로 삼는다
+    review_desc: (a, b) => best(b, 'rc') - best(a, 'rc') || a._p - b._p,
   };
 
-  function maxReviews(e) {
+  function best(e, key) {
     let m = 0;
-    for (const o of e._l) if (o.rc > m) m = o.rc;
+    for (const o of e._l) if (o[key] > m) m = o[key];
     return m;
   }
 
@@ -487,7 +490,7 @@
     brCtx = bCtx; gCtx = cCtx;
     renderBrands(); renderCats();
     $('reset').hidden = !(terms.length || group >= 0 || brandSel.size || !allSites || dcOnly || freeOnly
-      || multiOnly || min || max !== Infinity || tab !== 'all' || $('sort').value !== 'review_desc');
+      || multiOnly || min || max !== Infinity || tab !== 'all' || $('sort').value !== 'pop_desc');
 
     if (tab === 'hot') {
       const bySite = new Map();
@@ -622,7 +625,7 @@
     boxes().forEach(b => { b.checked = true; });
     ['min', 'max'].forEach(id => { $(id).value = ''; });
     ['dcOnly', 'freeOnly', 'multiOnly'].forEach(id => { $(id).checked = false; });
-    $('sort').value = 'review_desc';
+    $('sort').value = 'pop_desc';
     document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === 'all'));
     tab = 'all'; $('sort').disabled = false; $('sortTool').style.opacity = 1;
     ddPanel.hidden = brPanel.hidden = true;

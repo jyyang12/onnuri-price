@@ -50,6 +50,25 @@ def _offer(p, site_index, pre):
     return o
 
 
+def _popularity(o: dict) -> int:
+    return o.get("sl") or o.get("rc") or (1 if o.get("ft") else 0)
+
+
+def _rank_popularity(entries: list):
+    """몰마다 판매량·리뷰 수의 규모가 달라 그대로 비교하면 한 몰이 독식한다.
+    각 몰 안에서의 상위 비율(0~100)로 환산해 `pp` 로 적어 둔다."""
+    by_site = defaultdict(list)
+    for e in entries:
+        for o in e["o"]:
+            if _popularity(o):
+                by_site[o["s"]].append(o)
+    for offers in by_site.values():
+        offers.sort(key=_popularity, reverse=True)
+        n = len(offers)
+        for rank, o in enumerate(offers):
+            o["pp"] = max(1, round(100 * (n - rank) / n))
+
+
 def build(collected_at: str, sites: dict, groups: list, products: list) -> dict:
     site_index = {k: i for i, k in enumerate(sites)}
     group_index = {g: i for i, g in enumerate(groups)}
@@ -79,6 +98,8 @@ def build(collected_at: str, sites: dict, groups: list, products: list) -> dict:
             entry["i"] = pre.pack(img)
         entry["o"] = sorted((_offer(p, site_index, pre) for p in items), key=lambda o: o["p"])
         out.append(entry)
+
+    _rank_popularity(out)
 
     counts = Counter(brand_of.values())
     brands = [b for b, c in counts.most_common() if c >= MIN_BRAND_USES]
