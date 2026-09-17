@@ -91,7 +91,8 @@ def build(collected_at: str, sites: dict, groups: list, products: list) -> dict:
     out.sort(key=lambda e: -len(e["o"]))
     return {
         "t": collected_at,
-        "s": [{"k": k, "n": v["site_name"], "c": v["count"]} for k, v in sites.items()],
+        "s": [{"k": k, "n": v["site_name"], "c": v["count"],
+               **({"st": v["stale_since"][:10]} if v.get("stale_since") else {})} for k, v in sites.items()],
         "g": groups,
         "b": brands,
         "x": pre.table,

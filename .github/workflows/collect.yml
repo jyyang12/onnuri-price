@@ -27,6 +27,17 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: 지난 수집분 복원
+        # 몰이 일시적으로 느려 실패해도 그 몰 상품이 사이트에서 사라지지 않게 한다
+        run: |
+          mkdir -p data
+          url="https://raw.githubusercontent.com/${{ github.repository }}/deploy/data/snapshot.json.gz"
+          if curl -fsSL "$url" -o snapshot.json.gz; then
+            gunzip -c snapshot.json.gz > data/products.json
+            echo "복원: $(du -h data/products.json | cut -f1)"
+          else
+            echo "지난 수집분이 없어 새로 시작합니다"
+          fi
       - name: 수집
         run: |
           args=""
@@ -52,7 +63,7 @@ jobs:
         run: |
           rm -rf .publish && mkdir -p .publish/data
           cp index.html .publish/
-          cp data/products.js .publish/data/
+          cp data/products.js data/snapshot.json.gz .publish/data/
           cd .publish
           git init -q -b deploy
           git config user.name "github-actions[bot]"

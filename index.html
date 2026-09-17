@@ -122,6 +122,7 @@
   .dd-list input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; flex: 0 0 auto; }
   .dd-list .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dd-list .n { color: var(--muted); font-size: 11px; }
+  .dd-list .stale { font-size: 10.5px; color: #b26a00; background: #fff5e0; padding: 1px 5px; border-radius: 4px; }
   .dd-search {
     width: 100%; padding: 8px 10px; margin-bottom: 8px; border: 1px solid var(--line);
     border-radius: 8px; font-size: 13px; background: var(--bg);
@@ -319,7 +320,7 @@
   const siteBox = $('sites'), ddPanel = $('ddPanel'), ddBtn = $('ddBtn');
   SITES.forEach((s, i) => {
     const lab = document.createElement('label');
-    lab.innerHTML = `<input type="checkbox" value="${i}" checked><span class="nm">${esc(s.n)}</span><span class="n">${s.c.toLocaleString()}</span>`;
+    lab.innerHTML = `<input type="checkbox" value="${i}" checked><span class="nm">${esc(s.n)}${s.st ? ` <span class="stale" title="이 몰은 갱신에 실패해 ${esc(s.st)} 기준 데이터입니다">${esc(s.st)}</span>` : ''}</span><span class="n">${s.c.toLocaleString()}</span>`;
     lab.querySelector('input').addEventListener('change', () => { syncSites(); apply(); });
     siteBox.appendChild(lab);
   });

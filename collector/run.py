@@ -1,9 +1,10 @@
 import argparse
+import gzip
 import json
 import re
 import sys
 import time
-from collections import Counter
+from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
@@ -37,6 +38,10 @@ def main():
         return
 
     targets = args.site or list(SITES)
+    previous = _load_doc()
+    prev_by_site = defaultdict(list)
+    for p in previous.get("products", []):
+        prev_by_site[p["site"]].append(p)
     products, meta = [], {}
 
     def run_site(key):
@@ -51,18 +56,24 @@ def main():
             p.group = classify(p.category, p.name)
         info = {"site_name": mod.SITE_NAME, "count": len(items), "status": status, "seconds": round(time.time() - t0, 1)}
         print(f"[{key}] {len(items)}개 ({info['seconds']}s) {status}", file=sys.stderr, flush=True)
-        return key, info, [p.to_dict() for p in items]
+        return key, info, [p.to_dict() if hasattr(p, "to_dict") else p for p in items]
 
     # 사이트별 수집은 서로 독립적인 네트워크 작업이라 동시에 돌린다
     with ThreadPoolExecutor(max_workers=args.workers) as ex:
         for key, info, items in ex.map(run_site, targets):
+            # 몰이 일시적으로 느려 실패해도 그 몰 상품이 사라지지 않게 이전 결과를 쓴다
+            if not items and prev_by_site.get(key):
+                kept = prev_by_site[key]
+                info = {**info, "count": len(kept), "status": f"{info['status']} (이전 데이터 유지)",
+                        "stale_since": previous.get("sites", {}).get(key, {}).get("stale_since") or previous.get("collected_at", "")}
+                items = kept
+                print(f"[{key}] 수집 실패 → 이전 {len(kept)}개 유지", file=sys.stderr, flush=True)
             meta[key] = info
             products += items
 
     if args.site:
-        existing = _load_doc()
-        products = [p for p in existing.get("products", []) if p["site"] not in targets] + products
-        meta = {**existing.get("sites", {}), **meta}
+        products = [p for p in previous.get("products", []) if p["site"] not in targets] + products
+        meta = {**previous.get("sites", {}), **meta}
 
     out = {"collected_at": datetime.now().isoformat(timespec="seconds"), "sites": meta, "groups": GROUPS, "products": products}
     _save(out)
@@ -70,8 +81,12 @@ def main():
 
 
 def _save(out: dict):
-    # 원본은 재분류·디버깅용 로컬 파일 (용량이 커서 저장소에는 올리지 않음)
-    (DATA_DIR / "products.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
+    # 원본은 재분류용. 용량이 커서 저장소에는 gzip 형태(snapshot)만 올리고,
+    # 다음 수집이 이것을 되살려 실패한 몰의 이전 데이터를 유지한다.
+    raw = json.dumps(out, ensure_ascii=False)
+    (DATA_DIR / "products.json").write_text(raw, encoding="utf-8")
+    with gzip.open(DATA_DIR / "snapshot.json.gz", "wb", compresslevel=6) as f:
+        f.write(raw.encode("utf-8"))
     merged = build(out["collected_at"], out["sites"], out["groups"], out["products"])
     # file:// 로 열어도 fetch 없이 읽을 수 있도록 스크립트 형태로 저장
     (DATA_DIR / "products.js").write_text("window.__PRODUCTS__=" + json.dumps(merged, ensure_ascii=False, separators=(",", ":")) + ";", encoding="utf-8")
