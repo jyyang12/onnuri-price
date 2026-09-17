@@ -126,7 +126,8 @@
   .dd-list .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dd-list .n { color: var(--muted); font-size: 11px; }
   .dd-list .stale { font-size: 10.5px; color: #b26a00; background: #fff5e0; padding: 1px 5px; border-radius: 4px; }
-  .dd-list label.empty .nm { color: var(--muted); }
+  /* 결과가 없는 몰은 색만 흐리게 — .empty 는 '검색 결과 없음' 안내문이 쓰는 이름이라 겹치면 안 된다 */
+  .dd-list label.zero .nm { color: var(--muted); }
   .dd-search {
     width: 100%; padding: 8px 10px; margin-bottom: 8px; border: 1px solid var(--line);
     border-radius: 8px; font-size: 13px; background: var(--bg);
@@ -411,7 +412,7 @@
     siteCountEl.forEach((el, i) => {
       const c = counts.get(i) || 0;
       el.textContent = c.toLocaleString();
-      el.closest('label').classList.toggle('empty', c === 0);
+      el.closest('label').classList.toggle('zero', c === 0);
     });
   }
 
