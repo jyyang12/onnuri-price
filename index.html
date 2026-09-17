@@ -516,6 +516,8 @@
     const u = new URL(location);
     $('q').value ? u.searchParams.set('q', $('q').value.trim()) : u.searchParams.delete('q');
     history.replaceState(null, '', u);
+    // 목록이 통째로 바뀌었는데 스크롤이 남아 있으면 엉뚱한 중간부터 보인다
+    window.scrollTo(0, 0);
   }
 
   function renderStatus(terms) {
@@ -630,7 +632,6 @@
     tab = 'all'; $('sort').disabled = false; $('sortTool').style.opacity = 1;
     ddPanel.hidden = brPanel.hidden = true;
     syncSites(); syncBrand(); apply();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   $('logo').addEventListener('click', resetAll);
   $('reset').addEventListener('click', resetAll);
