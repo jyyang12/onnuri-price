@@ -91,7 +91,7 @@ def _save(out: dict):
     # file:// 로 열어도 fetch 없이 읽을 수 있도록 스크립트 형태로 저장
     (DATA_DIR / "products.js").write_text("window.__PRODUCTS__=" + json.dumps(merged, ensure_ascii=False, separators=(",", ":")) + ";", encoding="utf-8")
     _stamp_version(out["collected_at"])
-    print(f"묶음 {len(merged['p'])}종 / 판매처 {sum(len(e['o']) for e in merged['p'])}건", file=sys.stderr)
+    print(f"묶음 {len(merged['p'])}종 / 몰별 가격 {sum(len(e['o']) for e in merged['p'])}건", file=sys.stderr)
 
 
 def _stamp_version(collected_at: str):

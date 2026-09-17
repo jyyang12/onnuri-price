@@ -52,7 +52,7 @@ jobs:
           raw = pathlib.Path("data/products.js").read_text(encoding="utf-8")
           d = json.loads(raw[len("window.__PRODUCTS__="):-1])
           ok = [s for s in d["s"] if s["c"] > 0]
-          print(f"{len(d['p']):,}종 / 판매처 {sum(len(e['o']) for e in d['p']):,}건 / 사이트 {len(ok)}곳")
+          print(f"{len(d['p']):,}종 / 몰별 가격 {sum(len(e['o']) for e in d['p']):,}건 / 사이트 {len(ok)}곳")
           for s in d["s"]:
               print(f"  {s['k']:14} {s['c']:>7,}")
           # 데이터가 통째로 비면 배포하지 않는다

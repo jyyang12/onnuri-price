@@ -328,7 +328,7 @@
   const brandSel = new Set();
 
   const offerCount = all.reduce((a, e) => a + e.o.length, 0);
-  $('updated').innerHTML = `<b>${all.length.toLocaleString()}</b>종 · 판매처 <b>${offerCount.toLocaleString()}</b>건<br>${D.t.replace('T', ' ').slice(0, 16)} 수집 · 주 2회 갱신`;
+  $('updated').innerHTML = `상품 <b>${all.length.toLocaleString()}</b>종 · ${SITES.length}개 몰 가격 <b>${offerCount.toLocaleString()}</b>건<br>${D.t.replace('T', ' ').slice(0, 16)} 수집 · 주 2회 갱신`;
 
   /* ── 판매처 드롭다운 ── */
   const siteBox = $('sites'), ddPanel = $('ddPanel'), ddBtn = $('ddBtn');
