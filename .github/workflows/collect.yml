@@ -2,7 +2,8 @@ name: collect
 
 on:
   schedule:
-    - cron: "0 19 * * *" # 매일 04:00 KST
+    # 주 2회, 월·목 04:00 KST (각 몰에 부담을 덜 주려고 매일 돌리지 않는다)
+    - cron: "0 19 * * 0,3"
   workflow_dispatch:
     inputs:
       sites:

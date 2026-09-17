@@ -46,7 +46,8 @@ index.html       검색·비교 화면 (서버 없이 data/products.js 만 읽�
 
 ## 자동 갱신
 
-GitHub Actions가 매일 04:00(KST)에 수집한 뒤, 화면 파일과 데이터만 담아 `deploy` 브랜치로 발행합니다.
+GitHub Actions가 매주 월·목 04:00(KST)에 수집한 뒤, 화면 파일과 데이터만 담아 `deploy` 브랜치로 발행합니다.
+주기는 `.github/workflows/collect.yml` 의 `cron` 한 줄이고, 저장소 Actions 탭에서 수동 실행도 됩니다.
 호스팅은 그 브랜치를 바라봅니다. 수집 결과가 비정상이면(상품 1만 종 미만 또는 정상 사이트 8곳 미만) 발행을 건너뜁니다.
 
 ## 참고
