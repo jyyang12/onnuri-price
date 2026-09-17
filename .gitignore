@@ -1,0 +1,5 @@
+# 수집 결과 — 매일 CI가 만들어 deploy 브랜치로 발행한다
+data/
+__pycache__/
+*.pyc
+.publish/

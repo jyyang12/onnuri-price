@@ -1,0 +1,53 @@
+name: collect
+
+on:
+  schedule:
+    - cron: "0 19 * * *" # 매일 04:00 KST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 수집
+        run: python -m collector.run
+      - name: 결과 확인
+        run: |
+          python - <<'EOF'
+          import json, pathlib, sys
+          raw = pathlib.Path("data/products.js").read_text(encoding="utf-8")
+          d = json.loads(raw[len("window.__PRODUCTS__="):-1])
+          ok = [s for s in d["s"] if s["c"] > 0]
+          print(f"{len(d['p']):,}종 / 판매처 {sum(len(e['o']) for e in d['p']):,}건 / 사이트 {len(ok)}곳")
+          for s in d["s"]:
+              print(f"  {s['k']:14} {s['c']:>7,}")
+          # 데이터가 통째로 비면 배포하지 않는다
+          if len(d["p"]) < 10000 or len(ok) < 8:
+              sys.exit("수집 결과가 비정상이라 배포를 건너뜁니다")
+          EOF
+      - name: deploy 브랜치로 발행
+        run: |
+          rm -rf .publish && mkdir -p .publish/data
+          cp index.html .publish/
+          cp data/products.js .publish/data/
+          cd .publish
+          git init -q -b deploy
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "data: $(date -u +%Y-%m-%d\ %H:%M) UTC"
+          git push -q --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" deploy
