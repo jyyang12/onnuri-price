@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>미리보기 · 온누리 가격비교</title>
+<style>
+  :root { --bg: #1e1e22; --panel: #2a2a30; --text: #e9e8e4; --muted: #9b9a93; --accent: #e0491f; --line: #3a3a42; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 13px/1.5 -apple-system, "Pretendard", "Malgun Gothic", system-ui, sans-serif; height: 100vh; display: flex; flex-direction: column; }
+  header { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  h1 { font-size: 14px; margin: 0; font-weight: 700; }
+  .group { display: flex; gap: 4px; align-items: center; }
+  .group > span { color: var(--muted); font-size: 12px; margin-right: 2px; }
+  button { font: inherit; padding: 6px 11px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); color: var(--text); cursor: pointer; }
+  button:hover { border-color: var(--muted); }
+  button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  label { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); cursor: pointer; }
+  input[type=checkbox] { accent-color: var(--accent); }
+  .status { margin-left: auto; color: var(--muted); font-size: 12px; }
+  .status b { color: #7ee2a8; }
+  main { flex: 1; display: flex; gap: 20px; padding: 20px; overflow: auto; align-items: flex-start; justify-content: center; }
+  .pane { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .pane h2 { font-size: 12px; margin: 0; color: var(--muted); font-weight: 500; }
+  .phone {
+    background: #111; border-radius: 34px; padding: 10px; box-shadow: 0 16px 50px rgba(0,0,0,.5);
+    position: relative; flex: 0 0 auto;
+  }
+  .phone::before {
+    content: ''; position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+    width: 68px; height: 18px; background: #111; border-radius: 99px; z-index: 2;
+  }
+  .phone iframe { border: 0; border-radius: 26px; background: #fff; display: block; }
+  .desk { flex: 1 1 760px; min-width: 520px; max-width: 1100px; }
+  .desk iframe { width: 100%; height: 78vh; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  .hint { color: var(--muted); font-size: 12px; padding: 0 16px 10px; }
+  kbd { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 11px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>미리보기</h1>
+  <div class="group" id="sizes"><span>기기</span></div>
+  <div class="group">
+    <button id="rotate">가로 ↔ 세로</button>
+    <button id="reload">새로고침</button>
+    <label><input type="checkbox" id="auto" checked> 저장하면 자동 새로고침</label>
+    <label><input type="checkbox" id="showDesk"> PC 화면 같이 보기</label>
+  </div>
+  <div class="status" id="status">대기 중</div>
+</header>
+<div class="hint">화면을 고치면 자동으로 다시 불러옵니다. 데이터가 커서 첫 로딩에 몇 초 걸립니다 · <kbd>F5</kbd> 로 이 창 전체 새로고침</div>
+
+<main>
+  <div class="pane">
+    <h2 id="phoneLabel">390 × 844</h2>
+    <div class="phone" id="phone"><iframe id="fm" src="index.html" title="모바일 미리보기"></iframe></div>
+  </div>
+  <div class="pane desk" id="deskPane" hidden>
+    <h2>PC</h2>
+    <iframe id="fd" src="index.html" title="PC 미리보기"></iframe>
+  </div>
+</main>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const DEVICES = [
+    ['iPhone SE', 375, 667], ['iPhone 14', 390, 844], ['iPhone Pro Max', 430, 932],
+    ['Galaxy S', 360, 800], ['태블릿', 768, 1024],
+  ];
+  let device = DEVICES[1], landscape = false;
+
+  DEVICES.forEach(d => {
+    const b = document.createElement('button');
+    b.textContent = d[0];
+    b.onclick = () => { device = d; render(); };
+    b.dataset.name = d[0];
+    $('sizes').appendChild(b);
+  });
+
+  function render() {
+    const [name, w, h] = device;
+    const [W, H] = landscape ? [h, w] : [w, h];
+    const fm = $('fm');
+    fm.style.width = W + 'px';
+    fm.style.height = Math.min(H, window.innerHeight - 190) + 'px';
+    $('phoneLabel').textContent = `${name} · ${W} × ${H}`;
+    document.querySelectorAll('#sizes button').forEach(b => b.classList.toggle('on', b.dataset.name === name));
+  }
+
+  const reload = () => {
+    for (const id of ['fm', 'fd']) {
+      const f = $(id);
+      if (f.offsetParent !== null || id === 'fm') f.contentWindow.location.reload();
+    }
+    stamp('다시 불러옴');
+  };
+  const stamp = msg => { $('status').innerHTML = `<b>${msg}</b> · ${new Date().toLocaleTimeString('ko-KR')}`; };
+
+  $('rotate').onclick = () => { landscape = !landscape; render(); };
+  $('reload').onclick = reload;
+  $('showDesk').onchange = e => {
+    $('deskPane').hidden = !e.target.checked;
+    if (e.target.checked) $('fd').contentWindow.location.reload();
+  };
+  window.addEventListener('resize', render);
+
+  // index.html 이 바뀌면 알아서 다시 불러온다
+  let last = null;
+  setInterval(async () => {
+    if (!$('auto').checked) return;
+    try {
+      const r = await fetch('index.html', { method: 'HEAD', cache: 'no-store' });
+      const tag = r.headers.get('last-modified') || r.headers.get('etag');
+      if (last && tag && tag !== last) { last = tag; reload(); } else if (!last) { last = tag; stamp('감시 중'); }
+    } catch { /* 서버가 잠깐 멈춘 경우는 넘어간다 */ }
+  }, 2000);
+
+  render();
+})();
+</script>
+</body>
+</html>

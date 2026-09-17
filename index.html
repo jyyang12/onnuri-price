@@ -126,6 +126,7 @@
   .dd-list .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dd-list .n { color: var(--muted); font-size: 11px; }
   .dd-list .stale { font-size: 10.5px; color: #b26a00; background: #fff5e0; padding: 1px 5px; border-radius: 4px; }
+  .dd-list label.empty .nm { color: var(--muted); }
   .dd-search {
     width: 100%; padding: 8px 10px; margin-bottom: 8px; border: 1px solid var(--line);
     border-radius: 8px; font-size: 13px; background: var(--bg);
@@ -395,13 +396,24 @@
 
   /* ── 판매처 드롭다운 ── */
   const siteBox = $('sites'), ddPanel = $('ddPanel'), ddBtn = $('ddBtn');
+  const siteCountEl = [];
   SITES.forEach((s, i) => {
     const lab = document.createElement('label');
     lab.innerHTML = `<input type="checkbox" value="${i}" checked><span class="nm">${esc(s.n)}${s.st ? ` <span class="stale" title="이 몰은 갱신에 실패해 ${esc(s.st)} 기준 데이터입니다">${esc(s.st)}</span>` : ''}</span><span class="n">${s.c.toLocaleString()}</span>`;
     lab.querySelector('input').addEventListener('change', () => { syncSites(); apply(); });
+    siteCountEl[i] = lab.querySelector('.n');
     siteBox.appendChild(lab);
   });
   const boxes = () => [...siteBox.querySelectorAll('input')];
+
+  // 판매처 숫자도 카테고리·브랜드처럼 지금 검색 결과 기준으로 보여준다
+  function renderSiteCounts(counts) {
+    siteCountEl.forEach((el, i) => {
+      const c = counts.get(i) || 0;
+      el.textContent = c.toLocaleString();
+      el.closest('label').classList.toggle('empty', c === 0);
+    });
+  }
 
   function syncSites() {
     const on = boxes().filter(b => b.checked).length;
@@ -524,21 +536,26 @@
     $('multiTool').classList.toggle('active', multiOnly);
 
     filtered = [];
-    const bCtx = new Map(), cCtx = new Map();
+    const bCtx = new Map(), cCtx = new Map(), sCtx = new Map();
+    const narrowing = dcOnly || freeOnly || min || max !== Infinity;
     for (const e of all) {
       let ok = true;
       for (const t of terms) if (!e._n.includes(t)) { ok = false; break; }
       if (!ok) continue;
-      // 조건에 맞는 판매처만 남긴다 — 카드에 표시할 가격도 여기서 결정
-      let list = e.o;
-      if (!allSites || dcOnly || freeOnly || min || max !== Infinity) {
-        list = e.o.filter(o => (allSites || sites.has(o.s)) && (!dcOnly || o.d) && (!freeOnly || o.f) && o.p >= min && o.p <= max);
-        if (!list.length) continue;
-      }
-      if (multiOnly && list.length < 2) continue;
-      // 목록은 자기 자신을 뺀 조건으로 센다 — 그래야 고른 뒤에도 다른 선택지가 보인다
+      // 판매처를 빼고 값 조건만 건 목록 — 판매처 칸의 숫자는 이것으로 센다
+      const base = narrowing
+        ? e.o.filter(o => (!dcOnly || o.d) && (!freeOnly || o.f) && o.p >= min && o.p <= max)
+        : e.o;
+      if (!base.length) continue;
+      // 목록의 숫자는 저마다 자기 조건을 뺀 기준으로 센다 — 그래야 고른 뒤에도 다른 선택지가 보인다
       const inGroup = group < 0 || e.g === group;
       const inBrand = !brandSel.size || brandSel.has(e.br);
+      if (inGroup && inBrand && (!multiOnly || base.length > 1)) {
+        const counted = new Set();
+        for (const o of base) if (!counted.has(o.s)) { counted.add(o.s); sCtx.set(o.s, (sCtx.get(o.s) || 0) + 1); }
+      }
+      const list = allSites ? base : base.filter(o => sites.has(o.s));
+      if (!list.length || (multiOnly && list.length < 2)) continue;
       if (inBrand) cCtx.set(e.g, (cCtx.get(e.g) || 0) + 1);
       if (inGroup && e.br != null) bCtx.set(e.br, (bCtx.get(e.br) || 0) + 1);
       if (!inGroup || !inBrand) continue;
@@ -546,7 +563,7 @@
       filtered.push(e);
     }
     brCtx = bCtx; gCtx = cCtx;
-    renderBrands(); renderCats();
+    renderBrands(); renderCats(); renderSiteCounts(sCtx);
     $('reset').hidden = !(terms.length || group >= 0 || brandSel.size || !allSites || dcOnly || freeOnly
       || multiOnly || min || max !== Infinity || tab !== 'all' || $('sort').value !== 'pop_desc');
 
