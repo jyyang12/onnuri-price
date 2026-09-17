@@ -111,9 +111,12 @@
     position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; width: min(560px, 88vw);
     background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 12px;
   }
-  .dd-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .dd-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
   .dd-head strong { font-size: 13px; }
+  .dd-actions { display: flex; align-items: center; gap: 4px; }
   .dd-head button { font-size: 12px; color: var(--accent); background: none; border: 0; cursor: pointer; font-weight: 600; padding: 4px; }
+  .dd-close { display: none; }
+  .backdrop { display: none; }
   .dd-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 2px; max-height: 46vh; overflow-y: auto; }
   .dd-list label {
     display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px; cursor: pointer; font-size: 13px;
@@ -214,19 +217,48 @@
     .logo { font-size: 16px; }
     .stat { width: 100%; font-size: 11px; line-height: 1.4; }
     .search { flex-basis: 100%; }
-    /* 카테고리·필터는 한 줄로 두고 좌우로 넘겨 본다 */
-    .cats, .toolbar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .cats { padding-bottom: 8px; }
-    .toolbar { padding-bottom: 10px; }
-    .cats::-webkit-scrollbar, .toolbar::-webkit-scrollbar { height: 0; }
-    .cats, .toolbar { scrollbar-width: none; }
-    .cat, .tool { padding: 6px 11px; font-size: 12.5px; }
-    .tool { flex: 0 0 auto; }
-    .tool input[type=number] { width: 62px; }
+    /* 카테고리는 한 줄로 두고 좌우로 넘겨 본다 */
+    .cats { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; scrollbar-width: none; }
+    .cats::-webkit-scrollbar { height: 0; }
+    /* 필터는 접히게 둔다 — 가로 스크롤을 주면 그 안의 선택 창이 잘려 열리지 않는다 */
+    .toolbar { flex-wrap: wrap; gap: 6px; padding-bottom: 10px; }
+    .cat { padding: 7px 12px; font-size: 12.5px; }
+    .tool { padding: 9px 12px; font-size: 12.5px; min-height: 38px; }
+    .tool input[type=number] { width: 60px; padding: 5px; }
     .sep { display: none; }
+
+    /* 선택 창은 화면 아래에서 올라오는 시트로 — 손가락으로 다루기 쉽고 잘리지 않는다 */
+    .backdrop { display: block; position: fixed; inset: 0; background: rgba(23,23,26,.4); z-index: 90; }
+    .backdrop[hidden] { display: none; }
+    .dd-panel {
+      position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: 100%; z-index: 100;
+      border-radius: 18px 18px 0 0; border-width: 1px 0 0;
+      padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+      max-height: 82vh; overflow-y: auto; box-shadow: 0 -10px 34px rgba(23,23,26,.22);
+    }
+    /* 시트 상단 손잡이 */
+    .dd-panel::before {
+      content: ''; display: block; width: 38px; height: 4px; margin: 6px auto 10px;
+      background: var(--line); border-radius: 99px;
+    }
+    .dd-head { position: sticky; top: 0; background: var(--panel); padding: 4px 0 10px; margin: 0 0 4px; z-index: 1; }
+    .dd-head strong { font-size: 15px; }
+    .dd-head button { font-size: 13px; padding: 8px 6px; }
+    .dd-close { display: inline-block; color: var(--muted); }
+    .dd-list { grid-template-columns: 1fr; max-height: none; overflow: visible; }
+    .dd-list.one-col { max-height: none; }
+    .dd-list label, .dd-list .brand-row { padding: 12px 8px; font-size: 14px; }
+    .dd-list input { width: 18px; height: 18px; }
+    .dd-search { padding: 11px 12px; font-size: 15px; }
     .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; padding-top: 8px; }
     .price .now { font-size: 16px; }
     .status { padding: 10px 0 0; font-size: 12px; gap: 6px 12px; }
+    /* 손가락으로 누를 곳은 넉넉하게 */
+    .toggle { padding: 10px; font-size: 12.5px; }
+    .offers a { padding: 11px 2px; }
+    .o-site { font-size: 12.5px; }
+    .o-price { font-size: 13.5px; }
+    .more { width: 100%; padding: 14px; }
   }
 </style>
 </head>
@@ -255,14 +287,20 @@
       <div class="dd">
         <button type="button" class="tool" id="ddBtn"><span id="ddLabel">판매처 전체</span> <span class="caret">▼</span></button>
         <div class="dd-panel" id="ddPanel" hidden>
-          <div class="dd-head"><strong>판매처 선택</strong><button type="button" id="ddAll">전체 해제</button></div>
+          <div class="dd-head">
+            <strong>판매처 선택</strong>
+            <span class="dd-actions"><button type="button" id="ddAll">전체 해제</button><button type="button" class="dd-close" data-close>닫기</button></span>
+          </div>
           <div class="dd-list" id="sites"></div>
         </div>
       </div>
       <div class="dd">
         <button type="button" class="tool" id="brBtn"><span id="brLabel">브랜드 전체</span> <span class="caret">▼</span></button>
         <div class="dd-panel" id="brPanel" hidden>
-          <div class="dd-head"><strong>브랜드 선택</strong><button type="button" id="brClear">선택 해제</button></div>
+          <div class="dd-head">
+            <strong>브랜드 선택</strong>
+            <span class="dd-actions"><button type="button" id="brClear">선택 해제</button><button type="button" class="dd-close" data-close>닫기</button></span>
+          </div>
           <input id="brSearch" class="dd-search" type="search" placeholder="브랜드 검색" autocomplete="off">
           <div class="dd-list one-col" id="brands"></div>
         </div>
@@ -297,6 +335,7 @@
   <div class="empty" id="empty" hidden><strong>검색 결과가 없습니다</strong>다른 검색어나 필터를 시도해 보세요.</div>
   <button class="btn more" id="more" hidden>더 보기</button>
 </main>
+<div class="backdrop" id="backdrop" hidden></div>
 
 <script src="data/products.js?v=20260917094406"></script>
 <script>
@@ -330,6 +369,30 @@
   const offerCount = all.reduce((a, e) => a + e.o.length, 0);
   $('updated').innerHTML = `상품 <b>${all.length.toLocaleString()}</b>종 · ${SITES.length}개 몰 가격 <b>${offerCount.toLocaleString()}</b>건<br>${D.t.replace('T', ' ').slice(0, 16)} 수집 · 주 2회 갱신`;
 
+  /* ── 선택 창 열고 닫기 (좁은 화면에서는 아래에서 올라오는 시트) ── */
+  const backdrop = $('backdrop');
+  const isNarrow = () => window.matchMedia('(max-width: 640px)').matches;
+  const panels = () => document.querySelectorAll('.dd-panel');
+
+  function closePanels() {
+    panels().forEach(p => { p.hidden = true; });
+    backdrop.hidden = true;
+    document.body.style.overflow = '';
+  }
+  function togglePanel(panel) {
+    const opening = panel.hidden;
+    closePanels();
+    if (!opening) return false;
+    panel.hidden = false;
+    if (isNarrow()) { backdrop.hidden = false; document.body.style.overflow = 'hidden'; }
+    return true;
+  }
+  panels().forEach(p => p.addEventListener('click', e => e.stopPropagation()));
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closePanels));
+  backdrop.addEventListener('click', closePanels);
+  document.addEventListener('click', closePanels);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanels(); });
+
   /* ── 판매처 드롭다운 ── */
   const siteBox = $('sites'), ddPanel = $('ddPanel'), ddBtn = $('ddBtn');
   SITES.forEach((s, i) => {
@@ -351,10 +414,7 @@
     boxes().forEach(b => { b.checked = check; });
     syncSites(); apply();
   });
-  ddBtn.addEventListener('click', e => { e.stopPropagation(); ddPanel.hidden = !ddPanel.hidden; brPanel.hidden = true; });
-  ddPanel.addEventListener('click', e => e.stopPropagation());
-  document.addEventListener('click', () => { ddPanel.hidden = true; });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') ddPanel.hidden = true; });
+  ddBtn.addEventListener('click', e => { e.stopPropagation(); togglePanel(ddPanel); });
   syncSites();
 
   /* ── 브랜드 ── */
@@ -393,12 +453,10 @@
   $('brSearch').addEventListener('input', renderBrands);
   $('brClear').addEventListener('click', () => { brandSel.clear(); $('brSearch').value = ''; renderBrands(); syncBrand(); apply(); });
   brBtn.addEventListener('click', e => {
-    e.stopPropagation(); brPanel.hidden = !brPanel.hidden; ddPanel.hidden = true;
-    if (!brPanel.hidden) $('brSearch').focus();
+    e.stopPropagation();
+    // 휴대폰에서는 자동 포커스가 자판을 띄워 시트를 가린다
+    if (togglePanel(brPanel) && !isNarrow()) $('brSearch').focus();
   });
-  brPanel.addEventListener('click', e => e.stopPropagation());
-  document.addEventListener('click', () => { brPanel.hidden = true; });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') brPanel.hidden = true; });
   renderBrands(); syncBrand();
 
   /* ── 카테고리 ── */
@@ -630,7 +688,7 @@
     $('sort').value = 'pop_desc';
     document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === 'all'));
     tab = 'all'; $('sort').disabled = false; $('sortTool').style.opacity = 1;
-    ddPanel.hidden = brPanel.hidden = true;
+    closePanels();
     syncSites(); syncBrand(); apply();
   }
   $('logo').addEventListener('click', resetAll);
