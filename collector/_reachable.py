@@ -8,6 +8,8 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+from requests.adapters import HTTPAdapter
+
 from .common import session
 
 PROBES = {
@@ -33,7 +35,9 @@ PROBES = {
 def check(item):
     key, url = item
     s = session()
-    s.adapters.clear()  # 재시도 없이 한 번만 — 차단 여부만 보면 된다
+    # 재시도 없이 한 번만 — 차단 여부만 보면 된다
+    for scheme in ("https://", "http://"):
+        s.mount(scheme, HTTPAdapter(max_retries=0))
     t0 = time.time()
     try:
         r = s.get(url, timeout=25, stream=True)
