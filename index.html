@@ -203,6 +203,73 @@
     padding: 1px 5px; border-radius: 4px; margin-right: 5px; vertical-align: 1px;
   }
 
+  /* ── 담아두기 ──────────────────────── */
+  .add {
+    position: absolute; right: 8px; bottom: 8px; width: 31px; height: 31px; border-radius: 50%; border: 0;
+    background: rgba(255,255,255,.94); color: var(--text); font-size: 17px; font-weight: 700; line-height: 1;
+    cursor: pointer; display: grid; place-items: center; box-shadow: 0 2px 8px rgba(23,23,26,.2); transition: .15s;
+  }
+  .add:hover { background: #fff; transform: scale(1.08); }
+  .add.in { background: var(--accent); color: #fff; }
+  .offers .add {
+    position: static; width: 27px; height: 27px; font-size: 14px; flex: 0 0 auto;
+    background: var(--panel); border: 1px solid var(--line); box-shadow: none; margin-left: 8px;
+  }
+  .offers .add.in { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .offers li { display: flex; align-items: center; }
+  .offers li > a { flex: 1; min-width: 0; }
+
+  .fab {
+    position: fixed; right: 18px; bottom: 18px; z-index: 80; display: flex; align-items: center; gap: 9px;
+    background: var(--text); color: #fff; border: 0; border-radius: 999px; padding: 13px 20px;
+    font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 22px rgba(23,23,26,.3); transition: .15s;
+  }
+  .fab:hover { background: #2e2e33; }
+  .fab[hidden] { display: none; }
+  .fab .cnt { background: var(--accent); border-radius: 999px; padding: 1px 8px; font-size: 12px; }
+
+  .cart-panel {
+    position: fixed; right: 18px; bottom: 78px; left: auto; top: auto;
+    width: min(430px, 92vw); max-height: 74vh; overflow-y: auto; z-index: 100;
+  }
+  .cart-budget { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); padding: 2px 0 10px; }
+  .cart-budget input { flex: 1; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; background: var(--bg); }
+  .cart-budget input:focus { outline: 0; border-color: var(--accent); background: var(--panel); }
+  .cart-site + .cart-site { margin-top: 14px; }
+  .cart-site h4 {
+    font-size: 12px; margin: 0; padding: 6px 0; color: var(--muted); font-weight: 600;
+    display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--line);
+  }
+  .cart-site h4 b { color: var(--text); }
+  .cart-item { display: flex; gap: 9px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
+  .cart-item img { width: 40px; height: 40px; object-fit: cover; border-radius: 7px; flex: 0 0 auto; background: var(--line-soft); }
+  .ci-main { flex: 1; min-width: 0; }
+  .ci-name {
+    font-size: 12px; line-height: 1.35; color: inherit; text-decoration: none; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .ci-name:hover { color: var(--accent-dark); }
+  .ci-price { font-size: 12px; font-weight: 700; margin-top: 2px; }
+  .ci-price .was { color: var(--muted); font-weight: 400; text-decoration: line-through; margin-left: 4px; font-size: 11px; }
+  .ci-price .chg { color: var(--accent); font-weight: 600; font-size: 11px; margin-left: 3px; }
+  .qty { display: flex; align-items: center; gap: 3px; flex: 0 0 auto; }
+  .qty button {
+    width: 24px; height: 24px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel);
+    font-size: 14px; line-height: 1; padding: 0; cursor: pointer; color: var(--text);
+  }
+  .qty button:hover { border-color: var(--muted); }
+  .qty span { min-width: 18px; text-align: center; font-size: 12px; font-weight: 700; }
+  .ci-del { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 15px; padding: 2px 4px; flex: 0 0 auto; }
+  .ci-del:hover { color: var(--accent); }
+  .cart-total {
+    position: sticky; bottom: -1px; background: var(--panel); margin-top: 14px; padding: 11px 0 2px;
+    border-top: 2px solid var(--text); display: flex; flex-direction: column; gap: 5px;
+  }
+  .cart-total .row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; }
+  .cart-total .row.sum { font-size: 15px; font-weight: 800; }
+  .cart-total .left { color: var(--ok); font-weight: 700; }
+  .cart-total .over { color: var(--accent); font-weight: 700; }
+
   .hot-head { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 9px; margin: 16px 0 0; padding-bottom: 2px; }
   .hot-head h2 { font-size: 15px; font-weight: 800; margin: 0; }
   .hot-head small { color: var(--muted); font-size: 11.5px; }
@@ -337,6 +404,18 @@
   <div class="empty" id="empty" hidden><strong>검색 결과가 없습니다</strong>다른 검색어나 필터를 시도해 보세요.</div>
   <button class="btn more" id="more" hidden>더 보기</button>
 </main>
+<button class="fab" id="cartFab" hidden></button>
+<div class="dd-panel cart-panel" id="cartPanel" hidden>
+  <div class="dd-head">
+    <strong>담아둔 상품</strong>
+    <span class="dd-actions"><button type="button" id="cartClear">비우기</button><button type="button" class="dd-close" data-close>닫기</button></span>
+  </div>
+  <div class="cart-budget">
+    <label for="budget">보유 온누리상품권</label>
+    <input id="budget" type="number" min="0" step="10000" placeholder="예: 3000000" inputmode="numeric">
+  </div>
+  <div id="cartBody"></div>
+</div>
 <div class="backdrop" id="backdrop" hidden></div>
 
 <script src="data/products.js?v=20260917094406"></script>
@@ -370,6 +449,134 @@
 
   const offerCount = all.reduce((a, e) => a + e.o.length, 0);
   $('updated').innerHTML = `상품 <b>${all.length.toLocaleString()}</b>종 · ${SITES.length}개 몰 가격 <b>${offerCount.toLocaleString()}</b>건<br>${D.t.replace('T', ' ').slice(0, 16)} 수집 · 주 2회 갱신`;
+
+  /* ── 담아두기 ──────────────────────────
+     실제 결제는 각 몰에서 하므로, 여기서는 몰별로 얼마씩 쓸지 계산만 한다.
+     상품 주소를 열쇠로 쓴다 — 수집할 때마다 순서와 값은 바뀌어도 주소는 그대로다. */
+  const CART_KEY = 'onnuri.cart.v1';
+  let cart = { items: [], budget: null };
+  const cartKeys = new Set();
+  let offerIndex = null;
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(CART_KEY) || 'null');
+    if (saved && Array.isArray(saved.items)) cart = { items: saved.items, budget: saved.budget ?? null };
+  } catch { /* 저장된 내용을 못 읽으면 빈 장바구니로 시작한다 */ }
+
+  const cartSave = () => {
+    try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { /* 저장 못해도 화면은 동작한다 */ }
+  };
+
+  function findOffer(u) {
+    if (!offerIndex) {
+      offerIndex = new Map();
+      for (const e of all) for (const o of e.o) offerIndex.set(url(o.u), o);
+    }
+    return offerIndex.get(u);
+  }
+
+  // 지난주에 담아둔 값이 이번 수집에서 바뀌었을 수 있으니 현재 값으로 맞춘다
+  if (cart.items.length) {
+    for (const it of cart.items) {
+      const o = findOffer(it.u);
+      if (o && o.p !== it.p) { it.was = it.p; it.p = o.p; }
+      else if (!o) it.gone = true;
+    }
+    cartSave();
+  }
+  cart.items.forEach(it => cartKeys.add(it.u));
+
+  function cartToggle(u, entry, o) {
+    const at = cart.items.findIndex(x => x.u === u);
+    if (at >= 0) { cart.items.splice(at, 1); cartKeys.delete(u); }
+    else {
+      cart.items.push({ u, n: entry.n, img: entry.i ? url(entry.i) : '', sk: SITES[o.s].k, p: o.p, q: 1 });
+      cartKeys.add(u);
+    }
+    cartSave(); cartSync();
+  }
+
+  const cartTotal = () => cart.items.reduce((a, it) => a + it.p * it.q, 0);
+
+  function cartSync() {
+    const n = cart.items.length;
+    const fab = $('cartFab');
+    fab.hidden = n === 0;
+    fab.innerHTML = `🧺 <span class="cnt">${n}</span> ${fmt(cartTotal())}`;
+    if (n === 0) $('cartPanel').hidden = true;
+    // 화면에 떠 있는 담기 버튼 상태를 맞춘다
+    document.querySelectorAll('#grid [data-add]').forEach(b => {
+      const inCart = cartKeys.has(b.dataset.u);
+      b.classList.toggle('in', inCart);
+      b.textContent = inCart ? '✓' : '+';
+    });
+    if (!$('cartPanel').hidden) cartRender();
+  }
+
+  function cartRender() {
+    const bySite = new Map();
+    for (const it of cart.items) {
+      if (!bySite.has(it.sk)) bySite.set(it.sk, []);
+      bySite.get(it.sk).push(it);
+    }
+    const siteName = k => (SITES.find(s => s.k === k) || { n: k }).n;
+    let html = '';
+    for (const [sk, items] of bySite) {
+      const sub = items.reduce((a, it) => a + it.p * it.q, 0);
+      html += `<div class="cart-site"><h4><span>${esc(siteName(sk))} · ${items.length}종</span><b>${fmt(sub)}</b></h4>`;
+      for (const it of items) {
+        const changed = it.was && it.was !== it.p;
+        html += `<div class="cart-item" data-u="${esc(it.u)}">
+          ${it.img ? `<img loading="lazy" src="${esc(it.img)}" alt="" onerror="this.remove()">` : ''}
+          <span class="ci-main">
+            <a class="ci-name" href="${esc(it.u)}" target="_blank" rel="noopener">${esc(it.n)}</a>
+            <span class="ci-price">${fmt(it.p * it.q)}
+              ${changed ? `<span class="was">${fmt(it.was * it.q)}</span><span class="chg">${it.p > it.was ? '올랐어요' : '내렸어요'}</span>` : ''}
+              ${it.gone ? '<span class="chg">지금은 목록에 없음</span>' : ''}
+            </span>
+          </span>
+          <span class="qty">
+            <button type="button" data-q="-1" title="줄이기">−</button><span>${it.q}</span><button type="button" data-q="1" title="늘리기">+</button>
+          </span>
+          <button class="ci-del" type="button" data-del title="빼기">✕</button>
+        </div>`;
+      }
+      html += '</div>';
+    }
+    const total = cartTotal();
+    const budget = cart.budget || 0;
+    html += `<div class="cart-total">
+      ${bySite.size > 1 ? `<div class="row"><span>${bySite.size}개 몰 합계</span><span>${cart.items.length}종</span></div>` : ''}
+      <div class="row sum"><span>합계</span><span>${fmt(total)}</span></div>
+      ${budget ? `<div class="row"><span>보유 ${fmt(budget)}</span>${total <= budget
+        ? `<span class="left">${fmt(budget - total)} 남음</span>`
+        : `<span class="over">${fmt(total - budget)} 초과</span>`}</div>` : ''}
+    </div>`;
+    $('cartBody').innerHTML = html;
+  }
+
+  $('cartFab').addEventListener('click', e => {
+    e.stopPropagation();
+    if (togglePanel($('cartPanel'))) cartRender();
+  });
+  $('cartBody').addEventListener('click', e => {
+    const row = e.target.closest('.cart-item');
+    if (!row) return;
+    const it = cart.items.find(x => x.u === row.dataset.u);
+    if (!it) return;
+    if (e.target.closest('[data-del]')) { cartToggle(it.u); return; }
+    const q = e.target.closest('[data-q]');
+    if (q) { it.q = Math.max(1, it.q + +q.dataset.q); cartSave(); cartSync(); }
+  });
+  $('cartClear').addEventListener('click', () => {
+    if (cart.items.length && !confirm('담아둔 상품을 모두 비울까요?')) return;
+    cart.items = []; cartKeys.clear(); cartSave(); cartSync();
+  });
+  $('budget').value = cart.budget || '';
+  $('budget').addEventListener('input', () => {
+    cart.budget = +$('budget').value || null;
+    cartSave(); cartRender();
+  });
 
   /* ── 선택 창 열고 닫기 (좁은 화면에서는 아래에서 올라오는 시트) ── */
   const backdrop = $('backdrop');
@@ -618,14 +825,22 @@
     const sub = [];
     if (o.b) sub.push(esc(o.b));
     if (o.f) sub.push('무료배송');
-    return `<li class="${o === best ? 'best' : ''}"><a href="${esc(url(o.u))}" target="_blank" rel="noopener">
-      <span class="o-left">
-        <span class="o-site">${esc(SITES[o.s].n)}</span>
-        ${sub.length ? `<span class="o-sub">${sub.join(' · ')}</span>` : ''}
-      </span>
-      <span class="o-right"><span class="o-price">${fmt(o.p)}</span>${o.d ? ` <span class="dc">${o.d}%</span>` : ''}</span>
-    </a></li>`;
+    return `<li class="${o === best ? 'best' : ''}">
+      <a href="${esc(url(o.u))}" target="_blank" rel="noopener">
+        <span class="o-left">
+          <span class="o-site">${esc(SITES[o.s].n)}</span>
+          ${sub.length ? `<span class="o-sub">${sub.join(' · ')}</span>` : ''}
+        </span>
+        <span class="o-right"><span class="o-price">${fmt(o.p)}</span>${o.d ? ` <span class="dc">${o.d}%</span>` : ''}</span>
+      </a>
+      ${addBtn(o)}
+    </li>`;
   }
+
+  const addBtn = o => {
+    const u = url(o.u);
+    return `<button class="add${cartKeys.has(u) ? ' in' : ''}" type="button" data-add data-u="${esc(u)}" title="담기">${cartKeys.has(u) ? '✓' : '+'}</button>`;
+  };
 
   function card(e, primary, rank) {
     const o = primary || e._o, list = e._l || e.o;
@@ -644,6 +859,7 @@
         ${rank ? `<span class="badge rank">${rank}</span>` : ''}
         ${list.length > 1 ? `<span class="badge multi">${list.length}개 몰</span>` : ''}
         ${e.i ? `<img loading="lazy" src="${esc(url(e.i))}" alt="" onerror="this.remove();this.parentNode.classList.add('noimg')">` : '<span class="none">이미지 없음</span>'}
+        ${addBtn(o)}
       </div>
       <div class="body">
         <div class="site">${esc(SITES[o.s].n)}</div>
@@ -658,6 +874,10 @@
         ${meta.length ? `<div class="meta">${meta.join(' · ')}</div>` : ''}
         ${list.length > 1 ? `<button class="toggle" type="button">${list.length}개 몰 가격 비교</button>` : ''}
       </div>`;
+    // 담기 버튼은 위임으로 처리하니 어떤 상품·몰인지만 버튼에 달아 둔다
+    const addEl = el.querySelector('.thumb [data-add]');
+    if (addEl) { addEl._e = e; addEl._o = o; }
+
     const btn = el.querySelector('.toggle');
     if (btn) btn.addEventListener('click', () => {
       const open = el.querySelector('.offers');
@@ -665,6 +885,7 @@
       const ul = document.createElement('ul');
       ul.className = 'offers';
       ul.innerHTML = list.map(x => offerRow(x, list[0])).join('');
+      ul.querySelectorAll('[data-add]').forEach((b, i) => { b._e = e; b._o = list[i]; });
       btn.after(ul);
       btn.textContent = '접기';
     });
@@ -716,10 +937,17 @@
   $('form').addEventListener('submit', ev => { ev.preventDefault(); apply(); });
   ['sort', 'min', 'max', 'dcOnly', 'freeOnly', 'multiOnly'].forEach(id => $(id).addEventListener('change', apply));
   $('more').addEventListener('click', renderMore);
+  $('grid').addEventListener('click', ev => {
+    const btn = ev.target.closest('[data-add]');
+    if (!btn) return;
+    ev.preventDefault();
+    cartToggle(btn.dataset.u, btn._e, btn._o);
+  });
 
   const q0 = new URL(location).searchParams.get('q');
   if (q0) $('q').value = q0;
   apply();
+  cartSync();
 })();
 </script>
 </body>
